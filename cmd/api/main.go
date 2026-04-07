@@ -7,6 +7,10 @@ import (
 	"github.com/gofiber/fiber/v3/middleware/logger"
 	"github.com/jos3lo89/vehicle-control-unajma-api/config"
 	"github.com/jos3lo89/vehicle-control-unajma-api/config/database"
+	"github.com/jos3lo89/vehicle-control-unajma-api/internal/controllers"
+	"github.com/jos3lo89/vehicle-control-unajma-api/internal/repositories"
+	"github.com/jos3lo89/vehicle-control-unajma-api/internal/routes"
+	"github.com/jos3lo89/vehicle-control-unajma-api/internal/services"
 )
 
 func main() {
@@ -24,6 +28,11 @@ func main() {
 	}
 	defer pool.Close()
 
+	// Inyección de Dependencias
+	authRepo := repositories.NewAuthRepository(pool)
+	authService := services.NewAuthService(authRepo)
+	authController := controllers.NewAuthController(authService)
+
 	// app
 	app := fiber.New(fiber.Config{
 		AppName:      "Vehicle Control API v1.0.0",
@@ -39,6 +48,8 @@ func main() {
 			"Base de datos": "conectado",
 		})
 	})
+
+	routes.SetupRoutes(app, authController)
 
 	// iniciar app
 	log.Println("Servidor corriendo en puerto:", cfg.Port)
